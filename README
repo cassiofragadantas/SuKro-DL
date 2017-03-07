@@ -1,0 +1,20 @@
+
+
+Files:
+------
+
+sum_separable_dict_learn.m: contains the algorithm that learns dictionaries as a sum of few Kronecker products.
+
+DEMO:
+-----
+
+DEMO_Image_Denoising: This is the main script. Run it from inside the folder DEMO_Image_Denoising. The first time you run it, you will be asked to download two required packages (ompbox and ksvdbox), make sure you have an internet connection at this point. Also make sure the MEX file compilation is well configured. After the installations, rerun the script.
+
+image_denoise.m: Auxiliary function called by the 'DEMO_Image_Denoising' script. After the packages intallation, this file will be automatically moved to the 'toolbox/ksvdbox' folder.
+
+MISC:
+-----
+
+reord.m: Rearrangement operator.
+reord_inv.m: Inverse rearrangement operator.
+permut.m: Generates permutation matrix used by the rearrangement operator.
