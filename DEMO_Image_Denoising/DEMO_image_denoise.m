@@ -253,10 +253,10 @@ if (exp_type == 2)  % Complete experiment
     if (pos) && (params.blocksize == 8) && (params.dictsize == 256) && (params.trainnum == 40000)
         % Pre-calculated results for a specific parameter setting
         SNR_KSVD = [34.42 33.64 35.98 35.47 34.80 ;... % sigma 10
-                    30.93 30.44 33.37 32.42 32.31 ;... % sigma 20
-                    25.43 25.95 28.05 27.79 28.07 ;... % sigma 50
-                    22.94 23.98 25.21 25.75 25.73 ;... % sigma 75
-                    21.86 22.81 23.65 24.43 24.21];   % sigma 100
+                    30.83 30.36 33.20 32.38 32.27 ;... % sigma 20
+                    25.47 25.95 27.95 27.79 28.07 ;... % sigma 50
+                    23.01 23.98 25.22 25.80 25.73 ;... % sigma 75
+                    21.89 22.81 23.71 24.46 24.23];   % sigma 100 % From Elad-Aharon2006
 
         SNR_ODCT = [33.97 33.44 35.41 35.28 34.61 ;... % sigma 10
                     29.95 29.91 32.17 32.00 31.87 ;... % sigma 20
@@ -267,6 +267,7 @@ if (exp_type == 2)  % Complete experiment
         plot([0 64], SNR_KSVD(pos,imnum)*ones(1,2),'k'); %ksvd
         plot([0 64], SNR_ODCT(pos,imnum)*ones(1,2),'k--'); %odct
     end
+    xlim([0, 7]);
     grid on;
 end
 
