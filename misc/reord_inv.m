@@ -23,23 +23,19 @@ else
                 for i2 = 1:n2
                     % Rearrangement as in equation [3]
                     % The rearranged R_D has size (n1*m1,n2*m2)
-    %                 out_row = i1+(j1-1)*n1;
-    %                 out_col = i2+(j2-1)*n2;
-    %                 in_row  = i2+(i1-1)*n2;
-    %                 in_col  = j2+(j1-1)*m2;
-    %                 %idx(out_row + (out_col-1)*n1*m1) = in_row + (in_col-1)*n1*n2;
-    %                 %idx_inv(in_row + (in_col-1)*n1*n2) = out_row + (out_col-1)*n1*m1;
-    %                 R_D(out_row,out_col) = D(in_row,in_col);
+                    in_row = i1+(j1-1)*n1;
+                    in_col = i2+(j2-1)*n2;
+                    out_row  = i2+(i1-1)*n2;
+                    out_col  = j2+(j1-1)*m2;
+                    D(out_row,out_col) = R_D(in_row,in_col);
 
                     % Transpose rearrangement
                     % The rearranged R_D has size (n2*m2,n1*m1)
-                    in_col = i1+(j1-1)*n1;
-                    in_row = i2+(j2-1)*n2;
-                    out_row  = i2+(i1-1)*n2;
-                    out_col  = j2+(j1-1)*m2;
-                    %idx(out_row + (out_col-1)*n2*m2) = in_row + (in_col-1)*n1*n2;
-                    %idx_inv(in_row + (in_col-1)*n1*n2) = out_row + (out_col-1)*n2*m2;
-                    D(out_row,out_col) = R_D(in_row,in_col);
+%                     in_col = i1+(j1-1)*n1;
+%                     in_row = i2+(j2-1)*n2;
+%                     out_row  = i2+(i1-1)*n2;
+%                     out_col  = j2+(j1-1)*m2;
+%                     D(out_row,out_col) = R_D(in_row,in_col);
                 end
             end
         end
