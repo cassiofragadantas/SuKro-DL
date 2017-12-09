@@ -116,9 +116,12 @@ function [D,D_structured,X] = sum_separable_dict_learn(params)
 %
 %   Optional (default values in parentheses):
 %     'iternum'                number of training iterations (10)
+%     'u'                      ADMM \mu coefficient (1e7)
 %     'memusage'               'low, 'normal' or 'high' ('normal')
 %     'codemode'               'sparsity' or 'error' ('sparsity')
 %     'maxatoms'               max # of atoms in error sparse-coding (none)
+%     'kro_dims'               dimensions of the subdictionaries 
+%                              (N1=N2=sqrt(N), M1=M2=sqrt(M))
 %
 %
 %  Reference:
@@ -146,6 +149,23 @@ if (size(Y,2) < size(D,2))
   error('Number of training signals is smaller than number of atoms to train');
 end
 
+% subdictionaries dimensions
+if (isfield(params,'kro_dims'))
+    N1 = params.kro_dims.N1;
+    N2 = params.kro_dims.N2;
+    M1 = params.kro_dims.M1;
+    M2 = params.kro_dims.M2;    
+else
+    N1 = sqrt(size(D,1));
+    N2 = sqrt(size(D,1));
+    M1 = sqrt(size(D,2));
+    M2 = sqrt(size(D,2));
+end
+
+assert( N1*N2==size(D,1) && M1*M2==size(D,2), ...
+        'N (resp. M) should be equal to N1*N2 (resp. M1*M2)')
+assert( round(N1)==N1 && round(N2)==N2 && round(M1)==M1 && round(M2)==M2,...
+        'N1,N2,M1 and M2 should all be integers')
 
 %% Parameter setting
 
@@ -157,15 +177,20 @@ else
   iternum = 10;
 end
 
-% Indices for the reordering operators
-[N,M] = size(D);
-Ni = sqrt(N);
-Mi = sqrt(M);
-Pnm = permut(Ni,Mi);
-P_rank = kron(eye(Mi),kron(Pnm,eye(Ni)));
-idx = find(P_rank.'~=0) - (0:(N*M-1)).'*(N*M);
-idx_inv = find(P_rank~=0) - (0:(N*M-1)).'*(N*M);
-clear P_rank Pnm
+% ADMM coefficient
+if (isfield(params,'u'))
+  u = params.u;
+else
+  u = 1e7; % possible improvement: automatically set a good u.
+end
+
+idx_vec = 1:N1*N2*M1*M2;
+[idx] = reord(reshape(idx_vec,N1*N2, M1*M2),N1,N2,M1,M2);
+[idx_inv] = reord_inv(reshape(idx_vec,N1*M1, N2*M2),N1,N2,M1,M2);
+idx = idx(:);
+idx_inv = idx_inv(:);
+clear idx_vec
+
 
 %% Sparse Coding parameter setting
 CODE_SPARSITY = 1;
@@ -282,24 +307,23 @@ lambda = params.alpha*norm(Y);
 
 %% Ajuste automatico para step size
 step = 1e-10/norm(D);
-u = 1e7;
 
 found = false;
 
 iter = 0;
 clear lbound rbound
 while ~found
-    Z = reord(D,idx)/u;
+    Z = reord(D,N1,N2,M1,M2,idx)/u;
     D_hat = zeros(size(D));
     
     % Min Dmod
-    [U, S, V] = svd(reord(D_hat,idx) + Z ,'econ');
+    [U, S, V] = svd(reord(D_hat,N1,N2,M1,M2,idx) + Z ,'econ');
     diagS = diag(S);
     svp = length(find(diagS > lambda/u));
     temp_Dmod = U(:, 1:svp) * diag(diagS(1:svp) - lambda/u) * V(:, 1:svp)';
     % Min D_hat
     for k = 1:12
-        grad1 = D_hat - reord_inv(temp_Dmod - Z,size(D),idx_inv);
+        grad1 = D_hat - reord_inv(temp_Dmod - Z,N1,N2,M1,M2,idx_inv);
         grad2 = (D_hat*X - Y)*X.';
         if k == 10
             norm1 = norm(step*(u*grad1 + grad2), 'fro');
@@ -339,7 +363,7 @@ success = false;
 fprintf('Iteration:              ')
 while ~success
     try
-        Z = reord(D,idx)/u;  % It is faster if  these variables are not reseted every iteration
+        Z = reord(D,N1,N2,M1,M2,idx)/u;  % It is faster if  these variables are not reseted every iteration
         D_hat = zeros(size(D));
         tic
         for k = 1:iternum
@@ -355,12 +379,12 @@ while ~success
             % ADMM Loop
             while ~converged
                 % Min Dmod
-                [U, S, V] = svd(reord(D_hat,idx) + Z ,'econ');
+                [U, S, V] = svd(reord(D_hat,N1,N2,M1,M2,idx) + Z ,'econ');
                 diagS = diag(S);
                 svp = length(find(diagS > lambda/u));
                 temp_Dmod = U(:, 1:svp) * diag(diagS(1:svp) - lambda/u) * V(:, 1:svp)';
                 % Min D_hat
-                grad1 = D_hat - reord_inv(temp_Dmod - Z,size(D),idx_inv);
+                grad1 = D_hat - reord_inv(temp_Dmod - Z,N1,N2,M1,M2,idx_inv);
                 grad2 = (D_hat*X - Y)*X.';
                 temp_D_hat = D_hat - step*(u*grad1 + grad2);
                 D_hat = temp_D_hat;
@@ -368,7 +392,7 @@ while ~success
                 Dmod = temp_Dmod;
 
 
-                temp_Z = Z - Dmod + reord(D_hat,idx);
+                temp_Z = Z - Dmod + reord(D_hat,N1,N2,M1,M2,idx);
 
                 % stop Criterion    
                 if norm(temp_Z - Z, 'fro') < tol

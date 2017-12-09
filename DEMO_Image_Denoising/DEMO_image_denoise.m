@@ -177,6 +177,12 @@ end
 im = imread(imgname);
 im = double(im);
 
+% Subdictionaries (Kronecker factors) dimensions
+params.kro_dims.N1 = params.blocksize;
+params.kro_dims.N2 = params.blocksize;
+params.kro_dims.M1 = sqrt(params.dictsize);
+params.kro_dims.M2 = sqrt(params.dictsize);
+
 % results to store
 SNR = zeros(size(alpha));
 nuclear_norm_Dmod = zeros(size(alpha));
@@ -220,7 +226,7 @@ end
 SNR(k) = 20*log10(params.maxval * sqrt(numel(im)) / norm(im(:)-imout(:)));
 
 %% Saving results %%
-reord_dict = reord(dict_unnorm);
+reord_dict = reord(dict_unnorm,params.kro_dims.N1,params.kro_dims.N2,params.kro_dims.M1,params.kro_dims.M2);
 nuclear_norm_Dmod(k) = sum(svd(reord_dict));
 rank_Dmod(k) = rank(reord_dict,norm(dict)*2e-7);
 params_light = rmfield(params,'x');

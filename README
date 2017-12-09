@@ -5,6 +5,8 @@ Files:
 
 sum_separable_dict_learn.m: contains the algorithm that learns dictionaries as a sum of few Kronecker products.
 
+Sukro_simple_example.m: clean script calling the SuKro algorithm.
+
 DEMO:
 -----
 
